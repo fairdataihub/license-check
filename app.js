@@ -15,6 +15,12 @@ const generateLicenseText = (license, licenseName) => {
   }
 };
 
+const checkRepoForLicense = async (context) => {
+  const owner = context.payload.installation.account.login;
+  const repo = context.payload.repositories[0].name;
+  console.log("Making license request");
+};
+
 module.exports = (app) => {
   // Your code here
   app.log.info("Yay, the app was loaded!");
