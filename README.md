@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-# License-Check-App
-GitHub App that opens an issue on repositories that do not have a License
-=======
 # license-check-app
 
 > A GitHub App built with [Probot](https://github.com/probot/probot) that GitHub App that opens an issue on repositories that do not have a License
@@ -35,4 +31,3 @@ For more, check out the [Contributing Guide](CONTRIBUTING.md).
 ## License
 
 [ISC](LICENSE) © 2023 fairdataihub
->>>>>>> master
