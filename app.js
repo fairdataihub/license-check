@@ -15,22 +15,46 @@ const generateLicenseText = (license, licenseName) => {
   }
 };
 
-const checkRepoForLicense = async (context) => {
-  const owner = context.payload.installation.account.login;
-  const repo = context.payload.repositories[0].name;
+const checkForExistingIssue = async (owner, repo, context) => {
+  const issueList = await context.octokit.rest.issues.listForRepo({
+    owner,
+    repo,
+  });
+  console.log(issueList);
+  for (const issue of issueList.data) {
+    if (issue.title === "No License") {
+      return true;
+    }
+  }
+  return false;
+};
+
+const checkRepoForLicense = async (owner, repo, context) => {
   console.log("Making license request");
+  try {
+    const license = await context.octokit.rest.licenses.getForRepo({
+      owner,
+      repo,
+    });
+    console.log(license);
+  } catch (error) {
+    let existingIssue = checkForExistingIssue(owner, repo, context);
+    if (!existingIssue) {
+      //If false no existing issue so we create one
+      console.log("Opening Issue since user repo does not have license");
+      const repoIssue = await context.octokit.rest.issues.create({
+        owner,
+        repo,
+        title: "No License",
+        body: "Please add a license to your repository",
+      });
+    }
+  }
 };
 
 module.exports = (app) => {
   // Your code here
   app.log.info("Yay, the app was loaded!");
-
-  /*app.on("issues.opened", async (context) => {
-    const issueComment = context.issue({
-      body: "Thanks for opening this issue!",
-    });
-    return context.octokit.issues.createComment(issueComment);
-  });*/
 
   app.on("issue_comment.created", async (context) => {
     const comment = context.payload.comment.body;
@@ -76,23 +100,15 @@ module.exports = (app) => {
   app.on("installation.created", async (context) => {
     const owner = context.payload.installation.account.login;
     const repo = context.payload.repositories[0].name;
-    console.log("Making license request");
-    try {
-      const license = await context.octokit.rest.licenses.getForRepo({
-        owner,
-        repo,
-      });
-      console.log(license);
-    } catch (error) {
-      console.log("Opening Issue since user repo does not have license");
-      const repoIssue = await context.octokit.rest.issues.create({
-        owner,
-        repo,
-        title: "No License",
-        body: "Please add a license to your repository",
-      });
-      console.log(repoIssue);
-    }
+
+    checkRepoForLicense(owner, repo, context);
+  });
+
+  app.on("push", async (context) => {
+    const owner = context.payload.installation.account.login;
+    const repo = context.payload.repositories[0].name;
+
+    checkRepoForLicense(owner, repo, context);
   });
 
   // For more information on building apps:
