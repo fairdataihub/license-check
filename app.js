@@ -15,32 +15,54 @@ const generateLicenseText = (license, licenseName) => {
   }
 };
 
-const checkForExistingIssue = async (owner, repo, context) => {
-  const issueList = await context.octokit.rest.issues.listForRepo({
-    owner,
-    repo,
-  });
-  console.log(issueList);
-  for (const issue of issueList.data) {
-    if (issue.title === "No License") {
-      return true;
-    }
-  }
-  return false;
-};
-
-const checkRepoForLicense = async (owner, repo, context) => {
-  console.log("Making license request");
+const checkForExistingIssue = async (owner, repo, context, remove) => {
   try {
-    const license = await context.octokit.rest.licenses.getForRepo({
+    // Fetch all open issues on Github Repo
+    console.log("Fetching Github Issues");
+    const issueList = await context.octokit.rest.issues.listForRepo({
       owner,
       repo,
     });
-    console.log(license);
+    // console.log(issueList);
+
+    for (const issue of issueList.data) {
+      // If github title matches Bot title, return true
+      // Close issue if remove === true
+      console.log("checking issues");
+      console.log(issue);
+      if (issue.title === "No License") {
+        const issue_number = issue.number;
+        console.log(issue_number);
+        if (remove) {
+          console.log("closing github issue");
+          try {
+            let closeIssue = await context.octokit.rest.issues.update({
+              owner,
+              repo,
+              issue_number,
+              state: "closed",
+            });
+            console.log("Issue should be closed");
+          } catch (error) {
+            console.log("There was a problem closing the Github issue");
+            console.log(error);
+          }
+        }
+        return true;
+      } else {
+        return false;
+      }
+    }
   } catch (error) {
-    let existingIssue = checkForExistingIssue(owner, repo, context);
-    if (!existingIssue) {
-      //If false no existing issue so we create one
+    console.log("Error fetch Github Issues");
+  }
+};
+
+const createGithubIssue = async (owner, repo, context) => {
+  let existingIssue = await checkForExistingIssue(owner, repo, context);
+  if (!existingIssue) {
+    //If false, no existing issue on missing License.
+    try {
       console.log("Opening Issue since user repo does not have license");
       const repoIssue = await context.octokit.rest.issues.create({
         owner,
@@ -48,7 +70,25 @@ const checkRepoForLicense = async (owner, repo, context) => {
         title: "No License",
         body: "Please add a license to your repository",
       });
+    } catch (error) {
+      console.log("There was an issue creating a Github Issue");
     }
+  }
+};
+
+const checkRepoForLicense = async (owner, repo, context) => {
+  try {
+    console.log("Making license request");
+    const license = await context.octokit.rest.licenses.getForRepo({
+      owner,
+      repo,
+    });
+    console.log("License was found");
+    return true;
+  } catch (error) {
+    // No license was found
+    console.log("No license found");
+    return false;
   }
 };
 
@@ -56,59 +96,33 @@ module.exports = (app) => {
   // Your code here
   app.log.info("Yay, the app was loaded!");
 
-  app.on("issue_comment.created", async (context) => {
-    const comment = context.payload.comment.body;
-    // Get the user that made the comment
-    const user = context.payload.comment.user;
-    console.log(user);
-    console.log(comment);
-    if (comment === "/license") {
-      const owner = context.payload.repository.owner.login;
-      const repo = context.payload.repository.name;
-      const path = "LICENSE";
-      const message = "Add License to Repository";
-      const content = Buffer.from("This is a test").toString("base64");
-      const branch = "main";
-      const name = "fairdataihub-bot";
-      const email = "fairdataihub@gmail.com";
-
-      try {
-        console.log("Adding License File");
-        // IMP: THIS FAILS IF A LICENSE FILE IS ALREADY THERE NEEDS TO BE ADDRESSED
-        const res = await context.octokit.repos.createOrUpdateFileContents({
-          owner,
-          repo,
-          path,
-          message,
-          content,
-          branch,
-          name,
-          email,
-          name,
-          email,
-        });
-        console.log("Added License File");
-        console.log(res);
-      } catch (error) {
-        console.log("error adding license file:");
-        console.log(error);
-      }
-    }
-  });
-
   // Create a on installation listener that checks the repository for a License and opens an issue if it does not have one
   app.on("installation.created", async (context) => {
     const owner = context.payload.installation.account.login;
     const repo = context.payload.repositories[0].name;
 
-    checkRepoForLicense(owner, repo, context);
+    let status = await checkRepoForLicense(owner, repo, context);
+    if (!status) {
+      // create github issue if none exist
+      await createGithubIssue(owner, repo, context);
+    }
   });
 
   app.on("push", async (context) => {
-    const owner = context.payload.installation.account.login;
-    const repo = context.payload.repositories[0].name;
+    const owner = context.payload.repository.owner.name;
+    const repo = context.payload.repository.name;
 
-    checkRepoForLicense(owner, repo, context);
+    let status = await checkRepoForLicense(owner, repo, context);
+    console.log(status);
+    if (status) {
+      // if true then license exists, we need to check for open issue to close
+      let remove = true;
+      console.log("sending request to remove issue");
+      await checkForExistingIssue(owner, repo, context, remove);
+    } else {
+      console.log("creating github issue if none exist");
+      await createGithubIssue(owner, repo, context);
+    }
   });
 
   // For more information on building apps:
