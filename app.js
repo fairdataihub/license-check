@@ -3,18 +3,6 @@
  * @param {import('probot').Probot} app
  */
 
-const generateLicenseText = (license, licenseName) => {
-  if (licenseName === "MIT") {
-    return `MIT License`;
-  }
-  if (licenseName === "Apache-2.0") {
-    return `Apache License`;
-  }
-  if (licenseName === "GPL-3.0") {
-    return `GNU General Public License v3.0`;
-  }
-};
-
 const checkForExistingIssue = async (owner, repo, context, remove) => {
   try {
     // Fetch all open issues on Github Repo
