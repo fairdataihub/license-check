@@ -21,6 +21,7 @@ const checkForExistingIssue = async (owner, repo, context, remove) => {
       if (issue.title === "No License") {
         const issue_number = issue.number;
         console.log(issue_number);
+        console.log("Remove? " + remove);
         if (remove) {
           console.log("closing github issue");
           try {
@@ -92,7 +93,10 @@ module.exports = (app) => {
     let status = await checkRepoForLicense(owner, repo, context);
     if (!status) {
       // create github issue if none exist
+      console.log("No license found");
       await createGithubIssue(owner, repo, context);
+    } else {
+      console.log("License was found!");
     }
   });
 
@@ -101,7 +105,7 @@ module.exports = (app) => {
     const repo = context.payload.repository.name;
 
     let status = await checkRepoForLicense(owner, repo, context);
-    console.log(status);
+    console.log("License added? " + status);
     if (status) {
       // if true then license exists, we need to check for open issue to close
       let remove = true;
