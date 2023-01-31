@@ -83,6 +83,7 @@ const checkRepoForLicense = async (owner, repo, context) => {
 
 module.exports = (app, { getRouter }) => {
   // Your code here
+  // app.load(require('./middleware'))
   app.log.info("Yay, the app was loaded!");
 
   // Create a on installation listener that checks the repository for a License and opens an issue if it does not have one
@@ -135,6 +136,8 @@ module.exports = (app, { getRouter }) => {
   router.get("/support", (req, res) => {
     res.sendFile(path.join(__dirname + "/public/support.html"));
   });
+
+  // app.use(router);
 
   // For more information on building apps:
   // https://probot.github.io/docs/
