@@ -81,7 +81,7 @@ const checkRepoForLicense = async (owner, repo, context) => {
   }
 };
 
-module.exports = (app) => {
+module.exports = (app, { getRouter }) => {
   // Your code here
   app.log.info("Yay, the app was loaded!");
 
@@ -115,6 +115,25 @@ module.exports = (app) => {
       console.log("creating github issue if none exist");
       await createGithubIssue(owner, repo, context);
     }
+  });
+
+  const path = require("path")
+  const router = getRouter("/");
+
+  // Use any middleware
+  router.use(require("express").static(path.join(__dirname + "/public")));
+
+  router.get("/webhooks", (req, res) => {
+    res.sendFile(path.join(__dirname + "/public/index.html"));
+  });
+
+  // Add a new route
+  router.get("/privacy-policy", (req, res) => {
+    res.sendFile(path.join(__dirname + "/public/privacy.html"));
+  });
+
+  router.get("/support", (req, res) => {
+    res.sendFile(path.join(__dirname + "/public/support.html"));
   });
 
   // For more information on building apps:
