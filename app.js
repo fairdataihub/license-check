@@ -6,23 +6,21 @@
 const checkForExistingIssue = async (owner, repo, context, remove) => {
   try {
     // Fetch all open issues on Github Repo
-    console.log("Fetching Github Issues");
+    app.log("Fetching Github Issues");
     const issueList = await context.octokit.rest.issues.listForRepo({
       owner,
       repo,
     });
-    // console.log(issueList);
+    // app.log(issueList);
 
     for (const issue of issueList.data) {
       // If github title matches Bot title, return true
       // Close issue if remove === true
-      console.log("checking issues");
-      console.log(issue);
       if (issue.title === "No License") {
         const issue_number = issue.number;
-        console.log(issue_number);
+        app.log.info("closing: " + issue_number);
         if (remove) {
-          console.log("closing github issue");
+          app.log.info("closing github issue");
           try {
             let closeIssue = await context.octokit.rest.issues.update({
               owner,
@@ -30,10 +28,10 @@ const checkForExistingIssue = async (owner, repo, context, remove) => {
               issue_number,
               state: "closed",
             });
-            console.log("Issue should be closed");
+            app.log.info("Issue should be closed");
           } catch (error) {
-            console.log("There was a problem closing the Github issue");
-            console.log(error);
+            app.log.info("There was a problem closing the Github issue");
+            app.log.info(error);
           }
         }
         return true;
@@ -42,7 +40,7 @@ const checkForExistingIssue = async (owner, repo, context, remove) => {
       }
     }
   } catch (error) {
-    console.log("Error fetch Github Issues");
+    app.log.info("Error fetch Github Issues");
   }
 };
 
@@ -51,7 +49,7 @@ const createGithubIssue = async (owner, repo, context) => {
   if (!existingIssue) {
     //If false, no existing issue on missing License.
     try {
-      console.log("Opening Issue since user repo does not have license");
+      app.log.info("Opening Issue. User repo does not have license");
       const repoIssue = await context.octokit.rest.issues.create({
         owner,
         repo,
@@ -59,23 +57,23 @@ const createGithubIssue = async (owner, repo, context) => {
         body: "Please add a license to your repository",
       });
     } catch (error) {
-      console.log("There was an issue creating a Github Issue");
+      app.log.info("There was an issue creating a Github Issue");
     }
   }
 };
 
 const checkRepoForLicense = async (owner, repo, context) => {
   try {
-    console.log("Making license request");
+    app.log.info("Making license request");
     const license = await context.octokit.rest.licenses.getForRepo({
       owner,
       repo,
     });
-    console.log("License was found");
+    app.log.info("License was found");
     return true;
   } catch (error) {
     // No license was found
-    console.log("No license found");
+    app.log.info("No license found");
     return false;
   }
 };
@@ -92,6 +90,7 @@ module.exports = (app) => {
     let status = await checkRepoForLicense(owner, repo, context);
     if (!status) {
       // create github issue if none exist
+      app.log.info("Creating issue, no license detected.");
       await createGithubIssue(owner, repo, context);
     }
   });
@@ -101,14 +100,14 @@ module.exports = (app) => {
     const repo = context.payload.repository.name;
 
     let status = await checkRepoForLicense(owner, repo, context);
-    console.log(status);
+    app.log.info(status);
     if (status) {
       // if true then license exists, we need to check for open issue to close
       let remove = true;
-      console.log("sending request to remove issue");
+      app.log.info("remove existing issue");
       await checkForExistingIssue(owner, repo, context, remove);
     } else {
-      console.log("creating github issue if none exist");
+      app.log.info("creating github issue if none exist");
       await createGithubIssue(owner, repo, context);
     }
   });
