@@ -11,7 +11,6 @@ const checkForExistingIssue = async (owner, repo, context, remove) => {
       owner,
       repo,
     });
-    // app.log(issueList);
 
     for (const issue of issueList.data) {
       // If github title matches Bot title, return true
@@ -79,7 +78,6 @@ const checkRepoForLicense = async (owner, repo, context) => {
 };
 
 module.exports = (app) => {
-  // Your code here
   app.log.info("Yay, the app was loaded!");
 
   // Create a on installation listener that checks the repository for a License and opens an issue if it does not have one
