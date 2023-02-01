@@ -83,6 +83,14 @@ const checkRepoForLicense = async (owner, repo, context) => {
   }
 };
 
+const checkPush = async (owner, repo, context) => {
+  let addedFiles = context.payload.commits[0].added;
+  if (addedFiles.includes("LICENSE")) {
+    return true;
+  }
+  return false;
+};
+
 module.exports = (app) => {
   // Your code here
   // app.load(require('./middleware'))
@@ -108,12 +116,13 @@ module.exports = (app) => {
     const repo = context.payload.repository.name;
 
     let status = await checkRepoForLicense(owner, repo, context);
+    let licenseInPush = await checkPush(owner, repo, context);
     console.log("License added? " + status);
-    if (status) {
+    if (licenseInPush || status) {
       // if true then license exists, we need to check for open issue to close
-      let remove = true;
+      let removeIssue = true;
       console.log("sending request to remove issue");
-      await checkForExistingIssue(owner, repo, context, remove);
+      await checkForExistingIssue(owner, repo, context, removeIssue);
     } else {
       console.log("creating github issue if none exist");
       await createGithubIssue(owner, repo, context);
