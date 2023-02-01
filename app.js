@@ -20,7 +20,7 @@ const checkForExistingIssue = async (owner, repo, context, remove) => {
       console.log(issue);
       if (issue.title === "No License") {
         const issue_number = issue.number;
-        console.log(issue_number);
+        console.log("issue number: " + issue_number);
         console.log("Remove? " + remove);
         if (remove) {
           console.log("closing github issue");
@@ -44,6 +44,7 @@ const checkForExistingIssue = async (owner, repo, context, remove) => {
     }
   } catch (error) {
     console.log("Error fetch Github Issues");
+    console.log(error);
   }
 };
 
@@ -61,6 +62,7 @@ const createGithubIssue = async (owner, repo, context) => {
       });
     } catch (error) {
       console.log("There was an issue creating a Github Issue");
+      console.log(error);
     }
   }
 };
@@ -118,25 +120,25 @@ module.exports = (app) => {
     }
   });
 
-  const path = require("path")
-  const getRouter = require("probot/lib/get-router");
-  const router = getRouter("/");
+  // const path = require("path")
+  // const getRouter = require("probot/lib/get-router");
+  // const router = getRouter("/");
 
-  // Use any middleware
-  router.use(require("express").static(path.join(__dirname + "/public")));
+  // // Use any middleware
+  // router.use(require("express").static(path.join(__dirname + "/public")));
 
-  router.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname + "/public/index.html"));
-  });
+  // router.get("/", (req, res) => {
+  //   res.sendFile(path.join(__dirname + "/public/index.html"));
+  // });
 
-  // Add a new route
-  router.get("/privacy-policy", (req, res) => {
-    res.sendFile(path.join(__dirname + "/public/privacy.html"));
-  });
+  // // Add a new route
+  // router.get("/privacy-policy", (req, res) => {
+  //   res.sendFile(path.join(__dirname + "/public/privacy.html"));
+  // });
 
-  router.get("/support", (req, res) => {
-    res.sendFile(path.join(__dirname + "/public/support.html"));
-  });
+  // router.get("/support", (req, res) => {
+  //   res.sendFile(path.join(__dirname + "/public/support.html"));
+  // });
 
   // app.use(router);
 
