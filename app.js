@@ -81,7 +81,7 @@ const checkRepoForLicense = async (owner, repo, context) => {
   }
 };
 
-module.exports = (app, { getRouter }) => {
+module.exports = (app) => {
   // Your code here
   // app.load(require('./middleware'))
   app.log.info("Yay, the app was loaded!");
@@ -119,12 +119,13 @@ module.exports = (app, { getRouter }) => {
   });
 
   const path = require("path")
-  const router = getRouter("/");
+  // const getRouter = require("probot/lib/get-router");
+  const router = app.getRouter("/");
 
   // Use any middleware
   router.use(require("express").static(path.join(__dirname + "/public")));
 
-  router.get("/webhooks", (req, res) => {
+  router.get("/", (req, res) => {
     res.sendFile(path.join(__dirname + "/public/index.html"));
   });
 
