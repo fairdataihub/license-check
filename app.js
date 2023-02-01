@@ -119,8 +119,8 @@ module.exports = (app) => {
   });
 
   const path = require("path")
-  // const getRouter = require("probot/lib/get-router");
-  const router = app.getRouter("/");
+  const getRouter = require("probot/lib/get-router");
+  const router = getRouter("/");
 
   // Use any middleware
   router.use(require("express").static(path.join(__dirname + "/public")));
