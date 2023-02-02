@@ -1,6 +1,6 @@
-# license-check-app
+# License Check Github App
 
-> A GitHub App built with [Probot](https://github.com/probot/probot) that GitHub App that opens an issue on repositories that do not have a License
+> A GitHub App built with [Probot](https://github.com/probot/probot). This app checks for a License in the installed repository and warns the user if no license if found.
 
 ## Setup
 
@@ -19,7 +19,7 @@ npm start
 docker build -t license-check-app .
 
 # 2. Start container
-docker run -e APP_ID=<app-id> -e PRIVATE_KEY=<pem-value> license-check-app
+docker run -e APP_ID=<app-id> -e PRIVATE_KEY=<pem-value> license-check
 ```
 
 ## Contributing
@@ -30,4 +30,4 @@ For more, check out the [Contributing Guide](CONTRIBUTING.md).
 
 ## License
 
-[ISC](LICENSE) © 2023 fairdataihub
+[MIT](LICENSE) © 2023 fairdataihub
